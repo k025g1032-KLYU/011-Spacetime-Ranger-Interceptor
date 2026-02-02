@@ -22,6 +22,7 @@ struct Stage
 	int maxInterceptorCount = 5;
 	Vector2 targetPosition[5];
 	Wall wall[10];
+	int backgroundTexture = 0;
 
 };
 
