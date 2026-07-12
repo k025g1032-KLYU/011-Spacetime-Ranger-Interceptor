@@ -7,7 +7,7 @@
 #include "Player.h"
 #include "stageData.h"
 
-const char kWindowTitle[] = "GC1A_11_ヨ_カンリン_インターセプター";
+const char kWindowTitle[] = "GC1C_11_時空戦隊インターセプター";
 
 //struct Drag
 //{
@@ -65,11 +65,12 @@ struct ChooseIcon {
 
 struct RangerUI {
 	int x; //位置.
-	int textureX; //テクスチャ位置.
+	int textureX ; //テクスチャ位置.
 	int status; //0=未啟用  1=啟用未使用  1=incharge  2=攔截中  3=待機(可選) 
 };
 RangerUI rangerUI[5];
 RangerUI targetHPbar;
+int targetHPbarTX = 0;
 
 
 //struct ControlUI {
@@ -141,7 +142,7 @@ void moveToNextPosition(Vector2& texturePosition, Vector2 APosition, Vector2 BPo
 	
 }
 
-void wall101Collapes01(Wall wall101, Player& player)
+void wall101Collapes01(Wall wall101, Player& player,int handle)
 {
 	wall101.a.x = wall101.position.x - wall101.length / 2;
 	wall101.a.y = wall101.position.y - wall101.hieght / 2 + 0;
@@ -165,10 +166,11 @@ void wall101Collapes01(Wall wall101, Player& player)
 		{
 			player.position.x = wall101.position.x - wall101.length / 2 - player.size;
 			player.velocity.x = -player.velocity.x;
+			Novice::PlayAudio(handle, 0, 1);
 		}
 	}
 }
-void wall101Collapes02(Wall wall101, Player& player)
+void wall101Collapes02(Wall wall101, Player& player, int handle)
 {
 	wall101.a.x = wall101.position.x + wall101.length / 2;
 	wall101.a.y = wall101.position.y - wall101.hieght / 2 + 0;
@@ -192,10 +194,11 @@ void wall101Collapes02(Wall wall101, Player& player)
 		{
 			player.position.x = wall101.position.x + wall101.length / 2 + player.size;
 			player.velocity.x = -player.velocity.x;
+			Novice::PlayAudio(handle, 0, 1);
 		}
 	}
 }
-void wall101Collapes03(Wall wall101, Player& player)
+void wall101Collapes03(Wall wall101, Player& player, int handle)
 {
 	wall101.a.x = wall101.position.x + wall101.length / 2;
 	wall101.a.y = wall101.position.y - wall101.hieght / 2 + 0;
@@ -219,10 +222,11 @@ void wall101Collapes03(Wall wall101, Player& player)
 		{
 			player.position.y = wall101.position.y - wall101.hieght / 2 - player.size;
 			player.velocity.y = -player.velocity.y;
+			Novice::PlayAudio(handle, 0, 1);
 		}
 	}
 }
-void wall101Collapes04(Wall wall101, Player& player)
+void wall101Collapes04(Wall wall101, Player& player, int handle)
 {
 	wall101.a.x = wall101.position.x + wall101.length / 2;
 	wall101.a.y = wall101.position.y + wall101.hieght / 2 + 0;
@@ -246,16 +250,17 @@ void wall101Collapes04(Wall wall101, Player& player)
 		{
 			player.position.y = wall101.position.y + wall101.hieght / 2 + player.size;
 			player.velocity.y = -player.velocity.y;
+			Novice::PlayAudio(handle, 0, 1);
 		}
 	}
 }
 
-void WallCollapes(Wall wall101, Player& player)
+void WallCollapes(Wall wall101, Player& player,int handle)
 {
-	wall101Collapes01(wall101, player);
-	wall101Collapes02(wall101, player);
-	wall101Collapes03(wall101, player);
-	wall101Collapes04(wall101, player);
+	wall101Collapes01(wall101, player,handle);
+	wall101Collapes02(wall101, player,handle);
+	wall101Collapes03(wall101, player,handle);
+	wall101Collapes04(wall101, player,handle);
 }
 
 Vector2I mouse;
@@ -410,6 +415,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	int stage1BGTexture = Novice::LoadTexture("./Resource/image/stageBG1.png");
 	stage[0].backgroundTexture = stage1BGTexture;
+	int stage2BGTexture = Novice::LoadTexture("./Resource/image/stageBG3.png");
+	stage[1].backgroundTexture = stage2BGTexture;
+	stage[2].backgroundTexture = stage2BGTexture;
+	int stage3BGTexture = Novice::LoadTexture("./Resource/image/stageBG2.png");
+	stage[3].backgroundTexture = stage3BGTexture;
+	stage[4].backgroundTexture = stage3BGTexture;
 	int stage6BGTexture = Novice::LoadTexture("./Resource/image/stageBG4.png");
 	stage[5].backgroundTexture = stage6BGTexture;
 
@@ -444,6 +455,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	int interceptSE2 = Novice::LoadAudio("./Resource/sound/hitwall.mp3");
 	int interceptfinishSE = Novice::LoadAudio("./Resource/sound/missionEnd.mp3");
 	int resultIconSE = Novice::LoadAudio("./Resource/sound/coin.mp3");
+	int bumpSE = Novice::LoadAudio("./Resource/sound/bumpintowall.mp3");
 	int playtitleBgm = -1;
 	int playmenuBgm = -1;
 	int playgameBgm = -1;
@@ -483,13 +495,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		Novice::GetMousePosition(&mouse.x, &mouse.y);
 		if(Novice::IsTriggerMouse(0))
 		{
-			Novice::PlayAudio(mouseSE2, 0, 5);
+			Novice::PlayAudio(mouseSE2, 0, 1);
 		}
 		if(gamePhase == 0) //title
 		{
 			if(inPhaseControll == 0)
 			{
-				playtitleBgm = Novice::PlayAudio(titleBgm, 1, 0.5);
+				playtitleBgm = Novice::PlayAudio(titleBgm, 1, 0.2f);
 				inPhaseControll = 2;
 			}
 			else if (inPhaseControll == 1)
@@ -541,7 +553,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					gamePhase = 1;
 					inPhaseControll = 0;
 					Novice::StopAudio(playtitleBgm);
-					playmenuBgm=Novice::PlayAudio(menuBgm, 1, 0.5);
+					playmenuBgm=Novice::PlayAudio(menuBgm, 1, 0.2f);
 				}
 			}
 		}
@@ -683,7 +695,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 							{
 								if (!soundControl2[i][j])
 								{
-									Novice::PlayAudio(mouseSE1, 0, 2);
+									Novice::PlayAudio(mouseSE1, 0, 1);
 									soundControl2[i][j] = true;
 								}
 								chooseIcon[i][j].isIconChoosed = true;
@@ -756,7 +768,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					gamePhase = 3;
 					inPhaseControll = 0;
 					Novice::StopAudio(playmenuBgm);
-					playgameBgm = Novice::PlayAudio(gameBgm, 1, 0.5);
+					playgameBgm = Novice::PlayAudio(gameBgm, 1, 0.2f);
 				}
 			}
 			else if (inPhaseControll == 13)  //ステーギ　編集
@@ -933,7 +945,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					{
 						for (int j = 0; j < stage[currentStage].maxInterceptorCount; j++)
 						{
-							WallCollapes(stage[currentStage].wall[i], interceptor[j]);
+							WallCollapes(stage[currentStage].wall[i], interceptor[j],bumpSE);
 						}
 					}
 					
@@ -1195,7 +1207,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					gamePhase = 4;
 					inPhaseControll = 0;
 					Novice::StopAudio(playgameBgm);
-					playtitleBgm = Novice::PlayAudio(titleBgm, 1, 0.5);
+					playtitleBgm = Novice::PlayAudio(titleBgm, 1, 0.2f);
 				}
 			}
 			else if (inPhaseControll == 13)  //ステーギ　編集
@@ -1223,7 +1235,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					gamePhase = 2;
 					inPhaseControll = 0;
 					Novice::StopAudio(playgameBgm);
-					playmenuBgm = Novice::PlayAudio(menuBgm, 1, 0.5);
+					playmenuBgm = Novice::PlayAudio(menuBgm, 1, 0.2f);
 				}
 			}
 
@@ -1242,7 +1254,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			}
 			if (mouse.x >= 0 && mouse.x <= 64 && mouse.y >= 15 && mouse.y <= 128)
 			{
-				controlUITextureActive = true;
+				controlUITextureActive = 2;
 				if (Novice::IsTriggerMouse(0))
 				{
 					inPhaseControll = 13;
@@ -1431,7 +1443,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					gamePhase = 2;
 					inPhaseControll = 0;
 					Novice::StopAudio(playtitleBgm);
-					playmenuBgm = Novice::PlayAudio(menuBgm, 1, 0.5);
+					playmenuBgm = Novice::PlayAudio(menuBgm, 1, 0.2f);
 					resultTimer = 0;
 				}
 			}
@@ -1594,7 +1606,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					0, 0, stage[currentStage].wall[i].length, 23, wall101Texture, static_cast<float>(stage[currentStage].wall[i].length) / 1280, 23.0f / 720, 0.0f, WHITE);
 				Novice::DrawSpriteRect(static_cast<int>(stage[currentStage].wall[i].position.x) + stage[currentStage].wall[i].length / 2, static_cast<int>(stage[currentStage].wall[i].position.y) + stage[currentStage].wall[i].hieght / 2,
 					0, 0, stage[currentStage].wall[i].length, 23, wall101Texture, static_cast<float>(stage[currentStage].wall[i].length) / 1280, 23.0f / 720, static_cast<float>(M_PI), WHITE);
-				Novice::DrawBox(static_cast<int>(stage[currentStage].wall[i].position.x) - stage[currentStage].wall[i].length / 2 + 23, static_cast<int>(stage[currentStage].wall[i].position.y) - stage[currentStage].wall[i].hieght / 2 + 23, stage[currentStage].wall[i].length - 46, stage[currentStage].wall[i].hieght - 46, 0.0f, RED, kFillModeWireFrame);
+				Novice::DrawBox(static_cast<int>(stage[currentStage].wall[i].position.x) - stage[currentStage].wall[i].length / 2 + 23, static_cast<int>(stage[currentStage].wall[i].position.y) - stage[currentStage].wall[i].hieght / 2 + 23, stage[currentStage].wall[i].length - 46, stage[currentStage].wall[i].hieght - 46, 0.0f, BLACK, kFillModeWireFrame);
 
 			}
 
@@ -1608,6 +1620,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 					}
 				}
+			}
+			for (int i = 0; i < 5; i++)
+			{
 				if (IPC3_2Status == 1 && interceptor[i].status == 1)
 				{
 					Novice::DrawEllipse((int)interceptor[i].position.x, (int)interceptor[i].position.y, interceptor[i].size, interceptor[i].size, 0.0f, interceptor[i].color, kFillModeSolid); //インターセプター本体
@@ -1671,13 +1686,17 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			Novice::DrawBox(50, 695, (int)(1100 * X), 10, 0.0f, WHITE, kFillModeSolid);
 			Novice::DrawEllipse(50 + (int)(1100 * X), 695 + 5, 10, 10, 0.0f, BLACK, kFillModeSolid);
 
-			if (controlUITextureActive)
+			if (controlUITextureActive==1)
 			{
-				controlUIX = 0;
+				controlUIX = -10;
 			}
-			else
+			else if(!controlUITextureActive)
 			{
 				controlUIX = -50;
+			}
+			else if (controlUITextureActive > 1)
+			{
+				controlUIX = 0;
 			}
 			if (controlUITextureX > controlUIX)
 			{
@@ -1695,8 +1714,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 					controlUITextureX = controlUIX;
 				}
 			}
-			Novice::DrawSprite(0, 0, controlUIbottomTexture, 1.0f, 1.0f, 0.0f, WHITE);
-			if (targetHPbar.status==1)
+
+			if (targetHPbar.status == 1)
 			{
 				targetHPbar.x = 0;
 			}
@@ -1704,29 +1723,32 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			{
 				targetHPbar.x = -135;
 			}
-			if (targetHPbar.textureX > targetHPbar.x)
+			if (targetHPbarTX  > targetHPbar.x)
 			{
-				targetHPbar.textureX -= 10;
-				if (targetHPbar.textureX < targetHPbar.x)
+				targetHPbarTX  -= 10;
+				if (targetHPbarTX  < targetHPbar.x)
 				{
-					targetHPbar.textureX = targetHPbar.x;
+					targetHPbarTX  = targetHPbar.x;
 				}
 			}
-			else if (targetHPbar.textureX < targetHPbar.x)
+			else if (targetHPbarTX  < targetHPbar.x)
 			{
-				targetHPbar.textureX += 10;
-				if (targetHPbar.textureX > targetHPbar.x)
+				targetHPbarTX  += 10;
+				if (targetHPbarTX  > targetHPbar.x)
 				{
-					targetHPbar.textureX = targetHPbar.x;
+					targetHPbarTX  = targetHPbar.x;
 				}
 			}
-			Novice::DrawSprite(targetHPbar.textureX, 0, targetHPTexture, 1.0f, 1.0f, 0.0f, WHITE);
+
+			Novice::DrawSprite(0, 0, controlUIbottomTexture, 1.0f, 1.0f, 0.0f, WHITE);
+			Novice::DrawSprite(targetHPbarTX , 0, targetHPTexture, 1.0f, 1.0f, 0.0f, WHITE);
 			int chargeBar = static_cast<int>(120 * target.hp / stage[currentStage].maxInterceptorCount);
-			Novice::DrawBox(10+ targetHPbar.textureX, 577 , chargeBar, 20 , 0.0f, GREEN , kFillModeSolid);
+			Novice::DrawBox(10+ targetHPbarTX , 577 , chargeBar, 20 , 0.0f, GREEN , kFillModeSolid);
 			for (int i = 0; i < stage[currentStage].maxInterceptorCount+1; i++)
 			{
-				Novice::DrawBox(10+ targetHPbar.textureX + 120 / stage[currentStage].maxInterceptorCount *i , 577+10- (10 - i * 3) , 3, 10+10 - i * 3, 0.0f, BLACK, kFillModeSolid);
+				Novice::DrawBox(10+ targetHPbarTX + 120 / stage[currentStage].maxInterceptorCount *i , 577+10- (10 - i * 3) , 3, 10+10 - i * 3, 0.0f, BLACK, kFillModeSolid);
 			}
+			//Novice::ScreenPrintf(10 , 10, "%d %d", targetHPbar.textureX ,targetHPbar.x);
 			Novice::DrawSprite(controlUITextureX, 0, controlUITexture, 1.0f, 1.0f, 0.0f, WHITE);
 			Novice::DrawSprite(0, 0, controlUItopTexture, 1.0f, 1.0f, 0.0f, WHITE);
 
